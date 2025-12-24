@@ -1,6 +1,8 @@
 # Xiaoland stuff of Coding Agents
 
 - `skills/`: Claude Skills
+- `toolsets/`
+  - `github-copilot`
 - `prompts/`
 - `agents/`
   - `<agentName>/`
