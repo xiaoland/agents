@@ -1,0 +1,34 @@
+.comp-name {
+  // Color tokens
+  background-color: sys-var(color, surface, base);
+  color: sys-var(color, text, primary);
+  border-color: sys-var(color, border, subtle);
+
+  // Spacing tokens
+  padding: sys-var(spacing, md);
+  gap: sys-var(spacing, sm);
+
+  // Border radius
+  border-radius: sys-var(radius, md);
+
+  &__header {
+    @include apply-font(heading-medium);
+  }
+
+  &__body {
+    padding: sys-var(spacing, md);
+  }
+
+  &__item {
+    cursor: pointer;
+
+    &--active {
+      background: sys-var(color, primary, base);
+    }
+
+    &--disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
