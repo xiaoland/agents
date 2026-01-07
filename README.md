@@ -3,14 +3,17 @@
 Include the prompts, agent skills, rules and everthing I'm using for coding agent are here.
 
 - `skills/`: Claude Skills
-- `toolsets/`
-  - `github-copilot`
 - `prompts/`
 - `agents/`
   - `<agentName>/`
     - `<agentName>.github-copilot.md`
-    - `<agentName>.xxx.xx`
-- `agents.md/`
+    - `<agentName>.cursor.md`
+- `rules/`
+- `agents.md/`: Project Index Guideline for Agents
+- `mcp/`
+  - `<mcpId>/`
+    - `<mcpId>.github-copilot.md`
+    - `<mcpId>.claude.md`
 
 ## Agents
 
