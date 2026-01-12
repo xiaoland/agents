@@ -2,7 +2,11 @@
 
 Define and execute tools with AI SDK v6.
 
+---
+
 ## Tool Definition
+
+Every tool requires three parts:
 
 ```typescript
 import { tool } from "ai";
@@ -15,27 +19,22 @@ const weatherTool = tool({
     unit: z.enum(["celsius", "fahrenheit"]).optional(),
   }),
   execute: async ({ location, unit = "celsius" }) => {
-    // Call weather API
-    const temp = Math.floor(Math.random() * 30) + 5;
-    return {
-      location,
-      temperature: temp,
-      unit,
-      condition: "partly cloudy",
-    };
+    const temp = await fetchWeatherAPI(location);
+    return { location, temperature: temp, unit };
   },
 });
 ```
 
-## Tool Components
+**Required properties:**
+- `description` — Guides model on when to use the tool (be specific)
+- `inputSchema` — Zod schema with `.describe()` on each field
+- `execute` — Async function receiving validated inputs
 
-| Property | Required | Description |
-|----------|----------|-------------|
-| `description` | Yes | Guides model on when to use the tool |
-| `inputSchema` | Yes | Zod schema for parameters |
-| `execute` | No | Async function to run when called |
-| `strict` | No | Enable provider schema validation |
-| `needsApproval` | No | Require human approval before execution |
+**Optional properties:**
+- `strict: true` — Enable provider schema validation
+- `needsApproval: true` — Require human approval before execution
+
+---
 
 ## Using Tools with generateText
 
@@ -52,29 +51,11 @@ const { text, toolCalls, toolResults } = await generateText({
 });
 ```
 
-## Using Tools with streamText
-
-```typescript
-import { streamText, tool } from "ai";
-
-const result = streamText({
-  model: openai("gpt-4o"),
-  tools: { weather: weatherTool },
-  prompt: "What's the weather in Paris?",
-  onChunk: ({ chunk }) => {
-    if (chunk.type === "tool-call") {
-      console.log("Tool called:", chunk.toolName, chunk.args);
-    }
-    if (chunk.type === "tool-result") {
-      console.log("Tool result:", chunk.result);
-    }
-  },
-});
-```
+---
 
 ## Multi-Step Tool Loops
 
-Enable automatic multi-step execution with `stopWhen`:
+Enable automatic multi-step execution with `stopWhen`. Without it, only one tool call happens.
 
 ```typescript
 import { generateText, stepCountIs } from "ai";
@@ -84,19 +65,20 @@ const { text, steps } = await generateText({
   tools: {
     search: searchTool,
     calculate: calculatorTool,
-    summarize: summarizeTool,
   },
-  stopWhen: stepCountIs(10), // Max 10 steps
-  prompt: "Research Vue.js market share, calculate growth rate, summarize findings",
+  stopWhen: stepCountIs(10),
+  prompt: "Research Vue.js market share and calculate year-over-year growth",
 });
 
 // Access each step
 for (const step of steps) {
-  console.log("Step:", step.text);
+  console.log("Text:", step.text);
   console.log("Tool calls:", step.toolCalls);
   console.log("Tool results:", step.toolResults);
 }
 ```
+
+---
 
 ## Stop Conditions
 
@@ -116,6 +98,8 @@ stopWhen: textContains("DONE")
 stopWhen: ({ steps }) => steps.length >= 3 && steps.some(s => s.toolCalls.length === 0)
 ```
 
+---
+
 ## Tool Choice Control
 
 ```typescript
@@ -132,23 +116,49 @@ toolChoice: "none"
 toolChoice: { type: "tool", toolName: "weather" }
 ```
 
-## Human-in-the-Loop Approval
+---
+
+## Streaming with Tools
 
 ```typescript
-const sensitiveAction = tool({
-  description: "Delete user data",
+import { streamText, tool } from "ai";
+
+const result = streamText({
+  model: openai("gpt-4o"),
+  tools: { weather: weatherTool },
+  prompt: "What's the weather in Paris?",
+  onChunk: ({ chunk }) => {
+    if (chunk.type === "tool-call") {
+      console.log("Calling:", chunk.toolName, chunk.args);
+    }
+    if (chunk.type === "tool-result") {
+      console.log("Result:", chunk.result);
+    }
+  },
+});
+```
+
+---
+
+## Human-in-the-Loop Approval
+
+Require approval before executing sensitive actions:
+
+```typescript
+const deleteUserTool = tool({
+  description: "Delete user data permanently",
   inputSchema: z.object({
     userId: z.string(),
-    confirm: z.boolean(),
   }),
-  needsApproval: true, // Requires approval before execute
+  needsApproval: true,
   execute: async ({ userId }) => {
-    // Destructive action
     await deleteUserData(userId);
     return { success: true };
   },
 });
 ```
+
+---
 
 ## Active Tools (Subset Selection)
 
@@ -165,14 +175,69 @@ const allTools = {
 const { text } = await generateText({
   model: openai("gpt-4o"),
   tools: allTools,
-  activeTools: ["search", "summarize"], // Only these available
+  activeTools: ["search", "summarize"],
   prompt: "Search and summarize Vue.js features",
 });
 ```
 
+---
+
+## Common Tool Patterns
+
+### Search Tool
+
+```typescript
+const searchTool = tool({
+  description: "Search the web for current information",
+  inputSchema: z.object({
+    query: z.string().describe("Search query"),
+    limit: z.number().optional().describe("Max results (default 5)"),
+  }),
+  execute: async ({ query, limit = 5 }) => {
+    const results = await searchAPI(query, limit);
+    return results.map(r => ({ title: r.title, snippet: r.snippet }));
+  },
+});
+```
+
+### Calculator Tool
+
+```typescript
+const calculatorTool = tool({
+  description: "Evaluate mathematical expressions",
+  inputSchema: z.object({
+    expression: z.string().describe("Math expression (e.g., '2 + 2 * 3')"),
+  }),
+  execute: async ({ expression }) => {
+    // Use safe parser like mathjs
+    const result = evaluate(expression);
+    return { expression, result };
+  },
+});
+```
+
+### Database Query Tool
+
+```typescript
+const queryTool = tool({
+  description: "Query database for records",
+  inputSchema: z.object({
+    table: z.enum(["users", "orders", "products"]),
+    filter: z.record(z.string()).optional(),
+    limit: z.number().default(10),
+  }),
+  execute: async ({ table, filter, limit }) => {
+    const results = await db.query(table, filter, limit);
+    return { count: results.length, data: results };
+  },
+});
+```
+
+---
+
 ## Error Handling
 
-Tool validation errors throw. Execution errors appear as content parts:
+Tool validation errors throw immediately. Execution errors appear as content parts:
 
 ```typescript
 const { text, toolResults } = await generateText({
@@ -188,74 +253,60 @@ for (const result of toolResults) {
 }
 ```
 
-## Common Tool Patterns
+---
 
-### Search Tool
+## Anti-patterns
 
 ```typescript
-const searchTool = tool({
-  description: "Search the web for information",
-  inputSchema: z.object({
-    query: z.string().describe("Search query"),
-    limit: z.number().optional().describe("Max results"),
-  }),
-  execute: async ({ query, limit = 5 }) => {
-    const results = await searchAPI(query, limit);
-    return results.map(r => ({ title: r.title, snippet: r.snippet }));
-  },
+// WRONG: No stopWhen with tools (only one call)
+const { text } = await generateText({
+  tools: { search: searchTool },
+  prompt: "Research Vue.js",
+}); // ❌ Single tool call only
+
+// CORRECT: Enable multi-step
+const { text } = await generateText({
+  tools: { search: searchTool },
+  stopWhen: stepCountIs(10),
+  prompt: "Research Vue.js",
+}); // ✓
+```
+
+```typescript
+// WRONG: Using v5 'system' parameter
+const agent = new Experimental_Agent({
+  system: "You are helpful",
+}); // ❌ Deprecated
+
+// CORRECT: Use 'instructions' in v6
+const { text } = await generateText({
+  instructions: "You are helpful",
+  tools: { ... },
+}); // ✓
+```
+
+```typescript
+// WRONG: Tool description too vague
+const tool = tool({
+  description: "Does stuff", // ❌ Model can't determine when to use
+});
+
+// CORRECT: Specific description
+const tool = tool({
+  description: "Calculate mathematical expressions like addition, multiplication, percentages", // ✓
 });
 ```
 
-### Calculator Tool
-
 ```typescript
-const calculatorTool = tool({
-  description: "Perform mathematical calculations",
-  inputSchema: z.object({
-    expression: z.string().describe("Math expression (e.g., '2 + 2 * 3')"),
-  }),
-  execute: async ({ expression }) => {
-    // Use a safe math parser like mathjs
-    const result = evaluate(expression);
-    return { expression, result };
-  },
-});
-```
+// WRONG: Input schema without descriptions
+inputSchema: z.object({
+  x: z.string(),
+  y: z.number(),
+}); // ❌ Model guesses parameter meaning
 
-### Database Query Tool
-
-```typescript
-const queryTool = tool({
-  description: "Query the database for user information",
-  inputSchema: z.object({
-    table: z.enum(["users", "orders", "products"]),
-    filter: z.record(z.string()).optional(),
-    limit: z.number().default(10),
-  }),
-  execute: async ({ table, filter, limit }) => {
-    const results = await db.query(table, filter, limit);
-    return { count: results.length, data: results };
-  },
-});
-```
-
-### API Call Tool
-
-```typescript
-const apiTool = tool({
-  description: "Call external API endpoint",
-  inputSchema: z.object({
-    endpoint: z.string().url(),
-    method: z.enum(["GET", "POST"]).default("GET"),
-    body: z.record(z.unknown()).optional(),
-  }),
-  execute: async ({ endpoint, method, body }) => {
-    const response = await fetch(endpoint, {
-      method,
-      body: body ? JSON.stringify(body) : undefined,
-      headers: { "Content-Type": "application/json" },
-    });
-    return response.json();
-  },
-});
+// CORRECT: Describe each parameter
+inputSchema: z.object({
+  x: z.string().describe("City name to look up"),
+  y: z.number().describe("Number of days to forecast"),
+}); // ✓
 ```

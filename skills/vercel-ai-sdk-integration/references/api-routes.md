@@ -1,11 +1,25 @@
 # API Routes Reference
 
-Server-side patterns for Nuxt/Vue AI SDK integration.
+Server-side patterns for Nuxt/Vue AI SDK v6 integration.
+
+## Decision: Which Response Method
+
+**For chat (multi-turn conversation):**
+Use `toUIMessageStreamResponse()`. Preserves message structure with `id`, `role`, `parts`.
+
+**For completion (single prompt):**
+Use `toTextStreamResponse()`. Returns plain text stream.
+
+**For non-streaming:**
+Await `generateText()` and return `result.text` or `result.output`.
+
+---
 
 ## Basic Chat Route
 
+Create `server/api/chat.ts`:
+
 ```typescript
-// server/api/chat.ts
 import { streamText, convertToModelMessages, UIMessage } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 
@@ -27,17 +41,25 @@ export default defineLazyEventHandler(async () => {
 });
 ```
 
+---
+
 ## With System Prompt
+
+Add `system` parameter for consistent behavior:
 
 ```typescript
 const result = streamText({
   model: openai("gpt-4o"),
-  system: "You are a helpful coding assistant. Respond concisely.",
+  system: "You are a helpful coding assistant. Be concise.",
   messages: await convertToModelMessages(messages),
 });
 ```
 
+---
+
 ## With Tools
+
+Add tools for function calling:
 
 ```typescript
 import { streamText, convertToModelMessages, tool } from "ai";
@@ -49,7 +71,8 @@ const calculatorTool = tool({
     expression: z.string().describe("Math expression to evaluate"),
   }),
   execute: async ({ expression }) => {
-    return { result: eval(expression) }; // Use safe parser in production
+    // Use safe parser like mathjs in production
+    return { result: eval(expression) };
   },
 });
 
@@ -70,7 +93,11 @@ export default defineLazyEventHandler(async () => {
 });
 ```
 
-## Text Completion Route
+---
+
+## Completion Route
+
+For single-prompt text generation (not conversation):
 
 ```typescript
 // server/api/completion.ts
@@ -93,7 +120,11 @@ export default defineLazyEventHandler(async () => {
 });
 ```
 
+---
+
 ## Structured Object Route
+
+For streaming JSON objects:
 
 ```typescript
 // server/api/recipe.ts
@@ -128,7 +159,11 @@ export default defineLazyEventHandler(async () => {
 });
 ```
 
+---
+
 ## Error Handling
+
+Wrap handler in try/catch:
 
 ```typescript
 export default defineEventHandler(async (event) => {
@@ -153,10 +188,13 @@ export default defineEventHandler(async (event) => {
 });
 ```
 
+---
+
 ## Environment Configuration
 
+Configure API keys in `nuxt.config.ts`:
+
 ```typescript
-// nuxt.config.ts
 export default defineNuxtConfig({
   runtimeConfig: {
     openaiApiKey: process.env.OPENAI_API_KEY,
@@ -164,6 +202,8 @@ export default defineNuxtConfig({
   },
 });
 ```
+
+---
 
 ## Provider Examples
 
@@ -210,4 +250,32 @@ const result = streamText({
   model: gateway("anthropic/claude-sonnet-4.5"),
   messages: await convertToModelMessages(messages),
 });
+```
+
+---
+
+## Anti-patterns
+
+```typescript
+// WRONG: Sync convertToModelMessages
+messages: convertToModelMessages(messages) // ❌ Returns Promise
+
+// CORRECT: Always await
+messages: await convertToModelMessages(messages) // ✓
+```
+
+```typescript
+// WRONG: toTextStreamResponse for chat
+return result.toTextStreamResponse(); // ❌ Loses message structure
+
+// CORRECT: toUIMessageStreamResponse for chat
+return result.toUIMessageStreamResponse(); // ✓
+```
+
+```typescript
+// WRONG: Exposing API key in client code
+const openai = createOpenAI({ apiKey: "sk-..." }); // ❌ Never expose keys
+
+// CORRECT: Use runtimeConfig (server only)
+const openai = createOpenAI({ apiKey: useRuntimeConfig().openaiApiKey }); // ✓
 ```

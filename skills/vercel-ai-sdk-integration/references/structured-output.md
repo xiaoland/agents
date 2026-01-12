@@ -2,21 +2,21 @@
 
 Generate typed data with AI SDK v6 Output API.
 
-## Output Types
+**NEVER use deprecated `generateObject()` or `streamObject()`.**
 
-### Output.text()
+---
 
-Default behavior - plain text generation:
+## Decision: Which Output Type
 
-```typescript
-const { text } = await generateText({
-  model: openai("gpt-4o"),
-  prompt: "Write a haiku",
-});
-// text: string
-```
+**For typed objects:** `Output.object({ schema })`
+**For arrays of typed elements:** `Output.array({ element })`
+**For classification to specific values:** `Output.choice({ options })`
+**For unvalidated JSON:** `Output.json()`
+**For plain text (default):** `Output.text()`
 
-### Output.object()
+---
+
+## Output.object()
 
 Generate typed objects matching a Zod schema:
 
@@ -42,7 +42,9 @@ const { output } = await generateText({
 // output: { name: string, age: number, email: string }
 ```
 
-### Output.array()
+---
+
+## Output.array()
 
 Generate arrays of typed elements:
 
@@ -64,7 +66,9 @@ const { output } = await generateText({
 // output: Array<{ name, price, category }>
 ```
 
-### Output.choice()
+---
+
+## Output.choice()
 
 Classification with predefined options:
 
@@ -79,18 +83,7 @@ const { output } = await generateText({
 // output: "positive" | "negative" | "neutral"
 ```
 
-### Output.json()
-
-Unstructured JSON without validation:
-
-```typescript
-const { output } = await generateText({
-  model: openai("gpt-4o"),
-  output: Output.json(),
-  prompt: "Generate a JSON config file",
-});
-// output: unknown (any valid JSON)
-```
+---
 
 ## Streaming Structured Output
 
@@ -120,9 +113,11 @@ for await (const partial of result.partialOutputStream) {
 }
 ```
 
+---
+
 ## Combining with Tools
 
-Structured output + tool calling in a single request:
+When using structured output with tool calling, the output generation counts as one step. Adjust `stopWhen` accordingly:
 
 ```typescript
 import { generateText, Output, tool, stepCountIs } from "ai";
@@ -133,7 +128,7 @@ const { output, steps } = await generateText({
     getWeather: tool({
       description: "Get weather for a city",
       inputSchema: z.object({ city: z.string() }),
-      execute: async ({ city }) => ({ city, temp: 22, condition: "sunny" }),
+      execute: async ({ city }) => ({ city, temp: 22 }),
     }),
   },
   output: Output.object({
@@ -145,26 +140,34 @@ const { output, steps } = await generateText({
       })),
     }),
   }),
-  stopWhen: stepCountIs(3),
+  stopWhen: stepCountIs(5), // 4 tool calls + 1 output step
   prompt: "Get weather for Paris and London, then summarize",
 });
 ```
 
-**Note:** Structured output generation counts as one step. Adjust `stopWhen` accordingly.
+---
 
 ## Schema Best Practices
 
-### Use Descriptions
+### Add descriptions to every field
+
+Descriptions improve model accuracy:
 
 ```typescript
+// WRONG: No descriptions
 const schema = z.object({
-  title: z.string().describe("Article title, max 60 chars"),
-  summary: z.string().describe("2-3 sentence summary"),
-  tags: z.array(z.string()).describe("3-5 relevant keywords"),
-});
+  x: z.string(),
+  y: z.number(),
+}); // ❌ Model guesses field meaning
+
+// CORRECT: Explicit descriptions
+const schema = z.object({
+  x: z.string().describe("Product name"),
+  y: z.number().describe("Price in USD"),
+}); // ✓
 ```
 
-### Optional Fields
+### Optional and nullable fields
 
 ```typescript
 const schema = z.object({
@@ -174,7 +177,7 @@ const schema = z.object({
 });
 ```
 
-### Nested Objects
+### Nested objects
 
 ```typescript
 const addressSchema = z.object({
@@ -198,6 +201,8 @@ const schema = z.object({
 });
 ```
 
+---
+
 ## Error Handling
 
 ```typescript
@@ -217,9 +222,11 @@ try {
 }
 ```
 
+---
+
 ## Type Inference
 
-Extract schema types for component props:
+Extract TypeScript types from schemas:
 
 ```typescript
 import { z } from "zod";
@@ -229,9 +236,32 @@ const recipeSchema = z.object({
   ingredients: z.array(z.string()),
 });
 
-// Infer type from schema
 type Recipe = z.infer<typeof recipeSchema>;
 
-// Use in component
+// Use in Vue component
 defineProps<{ recipe: Recipe }>();
+```
+
+---
+
+## Anti-patterns
+
+```typescript
+// WRONG: Using deprecated generateObject
+import { generateObject } from "ai";
+const { object } = await generateObject({ schema }); // ❌
+
+// CORRECT: Use generateText with output
+import { generateText, Output } from "ai";
+const { output } = await generateText({
+  output: Output.object({ schema }),
+}); // ✓
+```
+
+```typescript
+// WRONG: Accessing .object property (v5 pattern)
+const { object } = await generateText({ output }); // ❌ No .object
+
+// CORRECT: Access .output property
+const { output } = await generateText({ output: Output.object({ schema }) }); // ✓
 ```

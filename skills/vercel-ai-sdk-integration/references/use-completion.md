@@ -1,12 +1,11 @@
 # useCompletion Reference
 
-Vue composable for text completions with streaming.
+Vue composable for single-prompt text completions with streaming.
 
-## Import
+**Use for:** Single prompts, summaries, translations, one-shot generation.
+**Do NOT use for:** Multi-turn conversations (use `Chat` class instead).
 
-```typescript
-import { useCompletion } from "@ai-sdk/vue";
-```
+---
 
 ## Basic Usage
 
@@ -14,13 +13,7 @@ import { useCompletion } from "@ai-sdk/vue";
 <script setup lang="ts">
 import { useCompletion } from "@ai-sdk/vue";
 
-const {
-  completion,
-  complete,
-  isLoading,
-  error,
-  stop,
-} = useCompletion({
+const { completion, complete, isLoading, error } = useCompletion({
   api: "/api/completion",
 });
 
@@ -38,36 +31,78 @@ const summarize = async () => {
 </template>
 ```
 
+---
+
 ## Parameters
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| `api` | `string` | `/api/completion` | Endpoint URL |
-| `id` | `string` | random | Unique identifier for shared state |
-| `initialInput` | `string` | `""` | Starting input value |
-| `initialCompletion` | `string` | `""` | Starting completion value |
-| `headers` | `Record<string, string>` | `{}` | Custom request headers |
-| `body` | `object` | `{}` | Additional request body data |
-| `credentials` | `RequestCredentials` | `"same-origin"` | Fetch credentials mode |
-| `streamProtocol` | `"text" \| "data"` | `"data"` | Stream format |
-| `onFinish` | `(result) => void` | - | Called when stream completes |
-| `onError` | `(error) => void` | - | Called on stream error |
-| `fetch` | `typeof fetch` | global | Custom fetch function |
+**api** (string, default: `/api/completion`)
+Endpoint URL for generation.
+
+**id** (string, default: random)
+Unique identifier. Use same ID across components to share state.
+
+**initialInput** (string)
+Starting input value.
+
+**initialCompletion** (string)
+Starting completion value.
+
+**headers** (Record<string, string>)
+Custom request headers.
+
+**body** (object)
+Additional request body data.
+
+**credentials** (RequestCredentials, default: `"same-origin"`)
+Fetch credentials mode.
+
+**streamProtocol** (`"text"` | `"data"`, default: `"data"`)
+Stream format.
+
+**onFinish** ((result) => void)
+Called when stream completes.
+
+**onError** ((error) => void)
+Called on stream error.
+
+**fetch** (typeof fetch)
+Custom fetch function.
+
+---
 
 ## Return Values
 
-| Property | Type | Description |
-|----------|------|-------------|
-| `completion` | `Ref<string>` | Current generated text |
-| `complete` | `(prompt: string) => Promise<string>` | Execute completion |
-| `error` | `Ref<Error \| undefined>` | Error object |
-| `isLoading` | `Ref<boolean>` | Request in progress |
-| `stop` | `() => void` | Abort current request |
-| `input` | `Ref<string>` | Current input value |
-| `setInput` | `(value: string) => void` | Update input |
-| `setCompletion` | `(value: string) => void` | Update completion |
-| `handleInputChange` | `(e: Event) => void` | Input event handler |
-| `handleSubmit` | `(e: Event) => void` | Form submit handler |
+**completion** (Ref<string>)
+Current generated text.
+
+**complete** ((prompt: string) => Promise<string>)
+Execute completion with prompt.
+
+**error** (Ref<Error | undefined>)
+Error object.
+
+**isLoading** (Ref<boolean>)
+Request in progress.
+
+**stop** (() => void)
+Abort current request.
+
+**input** (Ref<string>)
+Current input value.
+
+**setInput** ((value: string) => void)
+Update input.
+
+**setCompletion** ((value: string) => void)
+Update completion.
+
+**handleInputChange** ((e: Event) => void)
+Input onChange handler.
+
+**handleSubmit** ((e: Event) => void)
+Form submit handler.
+
+---
 
 ## With Form Input
 
@@ -99,6 +134,8 @@ const {
 </template>
 ```
 
+---
+
 ## With Callbacks
 
 ```vue
@@ -109,35 +146,17 @@ const { completion, complete } = useCompletion({
   api: "/api/completion",
   onFinish: (result) => {
     console.log("Completed:", result);
-    // Save to history, analytics, etc.
+    saveToHistory(result);
   },
   onError: (error) => {
     console.error("Failed:", error);
-    // Show notification, retry logic, etc.
+    showNotification("Generation failed");
   },
 });
 </script>
 ```
 
-## With Additional Body Data
-
-```vue
-<script setup lang="ts">
-import { ref } from "vue";
-import { useCompletion } from "@ai-sdk/vue";
-
-const temperature = ref(0.7);
-const maxTokens = ref(500);
-
-const { completion, complete } = useCompletion({
-  api: "/api/completion",
-  body: {
-    temperature: temperature.value,
-    maxTokens: maxTokens.value,
-  },
-});
-</script>
-```
+---
 
 ## Shared State Across Components
 
@@ -166,10 +185,13 @@ const { completion } = useCompletion({
 </script>
 ```
 
+---
+
 ## Server Route
 
+Create `server/api/completion.ts`:
+
 ```typescript
-// server/api/completion.ts
 import { streamText } from "ai";
 import { createOpenAI } from "@ai-sdk/openai";
 
@@ -189,4 +211,29 @@ export default defineLazyEventHandler(async () => {
     return result.toTextStreamResponse();
   });
 });
+```
+
+**Note:** Use `toTextStreamResponse()` for completion, not `toUIMessageStreamResponse()`.
+
+---
+
+## Anti-patterns
+
+```typescript
+// WRONG: Using useCompletion for chat
+const { complete } = useCompletion();
+complete("User: Hello\nAssistant:"); // ❌ No conversation memory
+
+// CORRECT: Use Chat class for conversations
+import { Chat } from "@ai-sdk/vue";
+const chat = new Chat({ api: "/api/chat" });
+chat.sendMessage({ text: "Hello" }); // ✓
+```
+
+```typescript
+// WRONG: Using toUIMessageStreamResponse for completion
+return result.toUIMessageStreamResponse(); // ❌ Wrong format
+
+// CORRECT: Use toTextStreamResponse
+return result.toTextStreamResponse(); // ✓
 ```
