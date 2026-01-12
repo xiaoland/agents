@@ -26,6 +26,18 @@
 
 - Prioritize A over B: Prioritize functionality over aesthetics.
 
+## 寻找
+
+- Indicate, find out
+  - Indicate the gaps between the plan.
+- Diagnose
+
+## 屎山代码
+
+- legacy code: still functional but not modernized
+- duplicated code: repeated logic or snippets that weren't consolidated
+- dead code: unused legacy remnants that could be safely removed but were left behind.
+
 ## Trivias
 
 - Barrel File （水桶文件）：汇聚导出的文件
