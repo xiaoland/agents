@@ -1,252 +1,216 @@
 # Vercel AI SDK v6 Vue Skill - Comprehensive Plan
 
-## Part 1: Current AI SDK Documentation Structure
+## Scope
 
-### Foundations
-- Overview
-- Providers and Models
-- Prompts
-- Tools
-- Streaming
+**Target:** Browser-based AI applications with Vue.js (no server/Nuxt dependency)
 
-### AI SDK Core (Server-Side)
-- Overview
-- Generating Text (`generateText`, `streamText`)
-- Generating Structured Data (`Output.object`, `Output.array`, etc.)
-- Tool Calling (`tool`, `dynamicTool`, multi-step loops)
-- Model Context Protocol (MCP)
-- Prompt Engineering
-- Settings (temperature, maxTokens, etc.)
-- Embeddings (`embed`, `embedMany`)
-- Error Handling
-- Telemetry
-
-### AI SDK UI (Client-Side, Framework-Agnostic)
-- Overview
-- Chatbot (`useChat` / `Chat`)
-- Chatbot Message Persistence
-- Chatbot Tool Usage
-- Completion (`useCompletion`)
-- Object Generation (`useObject`)
-- Streaming Custom Data
-- Error Handling
-- Transport
-- Stream Protocols
-
-### AI SDK Vue (@ai-sdk/vue)
-- `Chat` class
-- `useCompletion` composable
-- `useObject` composable
-
-### Reference APIs
-- `generateText()`, `streamText()`
-- `tool()`, `dynamicTool()`
-- `Output.object()`, `Output.array()`, `Output.choice()`
-- `convertToModelMessages()`
-- `stepCountIs()`, `hasToolCall()`
-- Provider functions (`createOpenAI`, `createAnthropic`, etc.)
+**Coverage:**
+- AI SDK Core: Text generation, Structured data, Tool calling, MCP, Prompts, Settings, Middleware, Providers, Errors
+- Agents: Building agents, Workflow patterns, Loop control
+- AI SDK UI (Vue): Chat class, useCompletion, useObject
 
 ---
 
-## Part 2: Scope Decision
-
-**Question for approval:** What scope should this skill cover?
-
-### Option A: Client-Side Only (Current)
-- `@ai-sdk/vue` composables only
-- Assumes API routes exist elsewhere
-- ~5 reference files
-
-### Option B: Full Vue.js Stack (Recommended)
-- Client-side: `@ai-sdk/vue` composables
-- Server-side: `ai` package for API routes (works with any Vue backend)
-- Covers complete Vue.js AI application patterns
-- ~12-15 reference files
-
-### Option C: Full SDK Coverage
-- Everything in Option B
-- Plus: Embeddings, MCP, Telemetry, advanced patterns
-- ~20+ reference files
-
----
-
-## Part 3: Proposed Skill Structure (Option B)
+## Proposed Skill Structure
 
 ```
 skills/vercel-ai-sdk-integration/
-├── SKILL.md                      # Index: decision framework, quick examples, links
+├── SKILL.md                      # Index (~100 lines)
 │
 ├── references/
 │   │
-│   │ # Client-Side (@ai-sdk/vue)
-│   ├── chat.md                   # Chat class API, messages, status, methods
-│   ├── use-completion.md         # useCompletion API
-│   ├── use-object.md             # useObject API, streaming JSON
+│   │ # AI SDK Core
+│   ├── generate-text.md          # generateText, streamText
+│   ├── structured-output.md      # Output.object, array, choice, enum
+│   ├── tool-calling.md           # tool(), execute, multi-step
+│   ├── mcp.md                    # Model Context Protocol client
+│   ├── prompts.md                # Prompt engineering patterns
+│   ├── settings.md               # temperature, maxTokens, topP, etc.
+│   ├── middleware.md             # wrapLanguageModel, custom middleware
+│   ├── providers.md              # createOpenAI, createAnthropic, etc.
+│   ├── error-handling.md         # Error types, handling patterns
 │   │
-│   │ # Server-Side (ai package)
-│   ├── generate-text.md          # generateText, streamText, prompts
-│   ├── structured-output.md      # Output.object, Output.array, Output.choice, schemas
-│   ├── tool-calling.md           # tool(), multi-step agents, stopWhen
-│   ├── streaming.md              # Stream responses, toUIMessageStreamResponse, protocols
-│   ├── providers.md              # createOpenAI, createAnthropic, createGateway
+│   │ # Agents
+│   ├── agents.md                 # ToolLoopAgent, workflow patterns, loop control
 │   │
-│   │ # Patterns
-│   ├── message-handling.md       # convertToModelMessages, UIMessage, ModelMessage
-│   ├── error-handling.md         # Client & server error patterns
-│   └── api-routes.md             # Generic API route patterns (not Nuxt-specific)
+│   │ # AI SDK UI (Vue.js)
+│   ├── chat.md                   # Chat class for Vue
+│   ├── use-completion.md         # useCompletion composable
+│   └── use-object.md             # useObject composable
 │
 └── assets/
-    ├── chat-component.vue        # Complete chat UI
-    ├── completion-component.vue  # Completion UI
-    ├── object-component.vue      # Streaming object UI
-    └── api-route-example.ts      # Generic server route (framework-agnostic)
+    └── chat-component.vue        # Minimal chat template
 ```
+
+**Total: 14 reference files + 1 asset**
 
 ---
 
-## Part 4: SKILL.md Structure (Index)
+## SKILL.md Structure
 
 ```markdown
 # Vercel AI SDK v6 for Vue.js
 
 ## Critical: v6 Breaking Changes
-[4-5 lines of NEVER do X → do Y instead]
+- useChat() → new Chat()
+- generateObject() → generateText({ output: Output.object() })
+- await convertToModelMessages() (now async)
+- Experimental_Agent → ToolLoopAgent with `instructions`
 
 ## Decision Framework
-**Building chat UI?** → See [chat.md]
-**Single prompt completion?** → See [use-completion.md]
-**Streaming JSON objects?** → See [use-object.md]
-**Server-side text generation?** → See [generate-text.md]
-**Structured data from AI?** → See [structured-output.md]
-**AI calling functions?** → See [tool-calling.md]
-**Setting up providers?** → See [providers.md]
+
+**Text generation?** → [generate-text.md]
+**Structured JSON output?** → [structured-output.md]
+**AI calling functions?** → [tool-calling.md]
+**Building agents?** → [agents.md]
+**MCP servers?** → [mcp.md]
+**Chat UI in Vue?** → [chat.md]
+**Completion UI?** → [use-completion.md]
+**Streaming objects?** → [use-object.md]
+**Provider setup?** → [providers.md]
+**Model settings?** → [settings.md]
+**Custom middleware?** → [middleware.md]
+**Prompt patterns?** → [prompts.md]
+**Error handling?** → [error-handling.md]
 
 ## Installation
-[2 lines]
+pnpm add ai @ai-sdk/vue @ai-sdk/openai zod
 
 ## Quick Start
-[Minimal 3 examples: Chat, Completion, Object - ~40 lines total]
+[3 minimal examples: generateText, Chat, useObject]
 
 ## Anti-patterns
-[10-15 lines of common mistakes]
+[Common v6 mistakes]
 
 ## References
-[Links to all reference files]
-
-## Assets
-[Links to templates]
+[Links]
 ```
 
 ---
 
-## Part 5: Content Outline Per Reference File
+## Content Outline Per Reference
 
-### chat.md (~150 lines)
-- Constructor options
-- Properties: messages, status, error
-- Methods: sendMessage, stop, regenerate, setMessages
-- Rendering message parts (text, tool-invocation)
-- Status-based UI patterns
-- Shared state across components
-- Anti-patterns
-
-### use-completion.md (~100 lines)
-- Parameters
-- Return values
-- Form pattern
-- Callbacks
-- Shared state
-- Anti-patterns
-
-### use-object.md (~120 lines)
-- Parameters (api, schema)
-- Return values (object, submit, isLoading)
-- Progressive rendering of partial objects
-- Schema best practices (.describe())
-- Type inference
-- Anti-patterns
-
-### generate-text.md (~150 lines)
+### generate-text.md (~120 lines)
 - generateText vs streamText decision
-- Parameters (model, prompt, system, messages)
-- Return values (text, output, toolCalls, steps)
-- Streaming patterns (textStream, fullStream)
+- Basic usage with prompt
+- Using with messages (conversation)
+- System prompt
+- Streaming (textStream, fullStream)
 - Callbacks (onChunk, onFinish, onError)
 - Anti-patterns
 
-### structured-output.md (~150 lines)
-- Output.object({ schema })
+### structured-output.md (~120 lines)
+- Output.object({ schema }) with Zod
 - Output.array({ element })
-- Output.choice({ options })
-- Output.json(), Output.text()
-- Schema best practices
-- Combining with tools
-- Error handling (NoObjectGeneratedError)
+- Output.choice({ options }) for classification
+- Output.enum() for enums
+- Schema best practices (.describe())
+- Streaming partial objects
 - Anti-patterns
 
-### tool-calling.md (~150 lines)
-- tool() definition (description, inputSchema, execute)
+### tool-calling.md (~130 lines)
+- tool() definition
+- inputSchema with Zod
+- execute function
 - Using with generateText/streamText
-- Multi-step loops (stopWhen: stepCountIs)
-- Stop conditions (stepCountIs, toolCallIs, textContains)
+- Multi-step (stopWhen: stepCountIs)
+- Stop conditions
 - Tool choice control
-- Streaming with tools
 - Anti-patterns
 
-### streaming.md (~100 lines)
-- toUIMessageStreamResponse() for chat
-- toTextStreamResponse() for completion
-- Stream protocols
-- Backpressure handling
+### mcp.md (~100 lines)
+- createMCPClient()
+- Connecting to MCP servers
+- Using MCP tools with generateText
+- Transport options
+- Anti-patterns
+
+### prompts.md (~80 lines)
+- Text prompts vs message arrays
+- System prompts
+- Multi-modal (images, files)
+- Prompt templates
+- Anti-patterns
+
+### settings.md (~80 lines)
+- temperature, topP, topK
+- maxTokens, maxOutputTokens
+- stopSequences
+- seed for reproducibility
+- Provider-specific settings
+- Anti-patterns
+
+### middleware.md (~100 lines)
+- wrapLanguageModel()
+- Built-in middleware (smoothStream, extractReasoning)
+- Custom middleware pattern
+- Chaining middleware
 - Anti-patterns
 
 ### providers.md (~100 lines)
 - createOpenAI, createAnthropic, createGoogle
 - createGateway (multi-provider)
-- Configuration options
-- Environment variables
-- Anti-patterns (exposing keys)
-
-### message-handling.md (~80 lines)
-- UIMessage structure
-- ModelMessage structure
-- convertToModelMessages() (async!)
-- Message parts (text, tool-invocation)
+- Browser-compatible setup
+- API key handling
+- Custom baseURL
 - Anti-patterns
 
 ### error-handling.md (~80 lines)
-- Client-side: chat.error, onError callbacks
-- Server-side: try/catch, onError in streams
-- NoObjectGeneratedError
-- Network errors
+- Error types (APICallError, NoObjectGeneratedError, etc.)
+- onError callbacks
+- Retry patterns
+- Client-side error display
 - Anti-patterns
 
-### api-routes.md (~100 lines)
-- Generic pattern (not framework-specific)
-- Chat route structure
-- Completion route structure
-- Structured output route
-- With tools
-- Error handling
+### agents.md (~150 lines)
+- ToolLoopAgent overview
+- instructions parameter
+- stopWhen conditions
+- Accessing steps and tool results
+- Workflow patterns (sequential, parallel, routing)
+- Human-in-the-loop (needsApproval)
+- Anti-patterns
+
+### chat.md (~120 lines)
+- Chat class constructor
+- Properties: messages, status, error
+- Methods: sendMessage, stop, regenerate
+- Rendering message parts
+- Status-based UI
+- Anti-patterns
+
+### use-completion.md (~80 lines)
+- Parameters
+- Return values
+- Basic usage
+- Callbacks
+- Anti-patterns
+
+### use-object.md (~100 lines)
+- Parameters (api, schema)
+- Return values
+- Progressive rendering
+- Schema with descriptions
 - Anti-patterns
 
 ---
 
-## Part 6: Questions for Approval
+## Estimated Size
 
-1. **Scope:** Option A (client-only), B (full stack), or C (full SDK)?
-
-2. **Framework specificity:** Should api-routes.md be completely generic, or include Nuxt examples alongside generic patterns?
-
-3. **Depth:** Should references be exhaustive (all parameters) or focused (common patterns only)?
-
-4. **Assets:** Should assets include more complete examples (full chat app) or minimal templates?
+- SKILL.md: ~100 lines
+- References: ~1,360 lines total (14 files)
+- Assets: ~100 lines (1 file)
+- **Total: ~1,560 lines**
 
 ---
 
-## Next Steps After Approval
+## Implementation Order
 
-1. Update SKILL.md to index structure
-2. Create/update reference files one by one
-3. Create asset templates
-4. Commit and push
+1. SKILL.md (index)
+2. Core: generate-text.md, structured-output.md, tool-calling.md
+3. Core: providers.md, settings.md, prompts.md
+4. Core: middleware.md, mcp.md, error-handling.md
+5. Agents: agents.md
+6. Vue UI: chat.md, use-completion.md, use-object.md
+7. Assets: chat-component.vue
+8. Final review and commit
