@@ -2,7 +2,7 @@
 
 Vue composable for single-prompt text completions with streaming.
 
-**Use for:** Single prompts, summaries, translations, one-shot generation.
+**Use for:** Summaries, translations, one-shot generation.
 **Do NOT use for:** Multi-turn conversations (use `Chat` class instead).
 
 ---
@@ -17,8 +17,8 @@ const { completion, complete, isLoading, error } = useCompletion({
   api: "/api/completion",
 });
 
-const summarize = async () => {
-  await complete("Summarize the key points of Vue 3 composition API");
+const summarize = () => {
+  complete("Summarize the key points of Vue 3 composition API");
 };
 </script>
 
@@ -36,58 +36,55 @@ const summarize = async () => {
 ## Parameters
 
 **api** (string, default: `/api/completion`)
-Endpoint URL for generation.
+Endpoint URL.
 
-**id** (string, default: random)
-Unique identifier. Use same ID across components to share state.
+**id** (string, optional)
+Unique identifier. Same ID shares state across components.
 
-**initialInput** (string)
+**initialInput** (string, optional)
 Starting input value.
 
-**initialCompletion** (string)
+**initialCompletion** (string, optional)
 Starting completion value.
 
-**headers** (Record<string, string>)
+**headers** (object, optional)
 Custom request headers.
 
-**body** (object)
+**body** (object, optional)
 Additional request body data.
 
-**credentials** (RequestCredentials, default: `"same-origin"`)
+**credentials** (string, default: `"same-origin"`)
 Fetch credentials mode.
 
 **streamProtocol** (`"text"` | `"data"`, default: `"data"`)
 Stream format.
 
-**onFinish** ((result) => void)
+**onFinish** ((result) => void, optional)
 Called when stream completes.
 
-**onError** ((error) => void)
+**onError** ((error) => void, optional)
 Called on stream error.
-
-**fetch** (typeof fetch)
-Custom fetch function.
 
 ---
 
 ## Return Values
 
-**completion** (Ref<string>)
+**completion** (Ref\<string\>)
 Current generated text.
 
-**complete** ((prompt: string) => Promise<string>)
+**complete** ((prompt: string) => Promise\<string\>)
 Execute completion with prompt.
 
-**error** (Ref<Error | undefined>)
+**error** (Ref\<Error | undefined\>)
 Error object.
 
-**isLoading** (Ref<boolean>)
+**isLoading** (Ref\<boolean\>)
 Request in progress.
 
 **stop** (() => void)
 Abort current request.
 
-**input** (Ref<string>)
+**input** (Ref\<string\>)
 Current input value.
 
 **setInput** ((value: string) => void)
@@ -104,7 +101,7 @@ Form submit handler.
 
 ---
 
-## With Form Input
+## Form Pattern
 
 ```vue
 <script setup lang="ts">
@@ -116,9 +113,7 @@ const {
   handleInputChange,
   handleSubmit,
   isLoading,
-} = useCompletion({
-  api: "/api/completion",
-});
+} = useCompletion({ api: "/api/completion" });
 </script>
 
 <template>
@@ -130,27 +125,24 @@ const {
     />
     <button type="submit" :disabled="isLoading">Generate</button>
   </form>
-  <div class="result">{{ completion }}</div>
+  <div>{{ completion }}</div>
 </template>
 ```
 
 ---
 
-## With Callbacks
+## Callbacks
 
 ```vue
 <script setup lang="ts">
-import { useCompletion } from "@ai-sdk/vue";
-
 const { completion, complete } = useCompletion({
   api: "/api/completion",
   onFinish: (result) => {
-    console.log("Completed:", result);
+    console.log("Done:", result);
     saveToHistory(result);
   },
   onError: (error) => {
     console.error("Failed:", error);
-    showNotification("Generation failed");
   },
 });
 </script>
@@ -158,82 +150,37 @@ const { completion, complete } = useCompletion({
 
 ---
 
-## Shared State Across Components
+## Shared State
 
-Use the same `id` to share completion state:
+Use same `id` to share across components:
 
 ```vue
-<!-- ComponentA.vue -->
+<!-- Input.vue -->
 <script setup lang="ts">
-import { useCompletion } from "@ai-sdk/vue";
-
 const { complete, isLoading } = useCompletion({
-  id: "shared-completion",
+  id: "shared",
   api: "/api/completion",
 });
 </script>
 
-<!-- ComponentB.vue -->
+<!-- Output.vue -->
 <script setup lang="ts">
-import { useCompletion } from "@ai-sdk/vue";
-
-// Same id = same state
 const { completion } = useCompletion({
-  id: "shared-completion",
+  id: "shared",
   api: "/api/completion",
 });
 </script>
 ```
-
----
-
-## Server Route
-
-Create `server/api/completion.ts`:
-
-```typescript
-import { streamText } from "ai";
-import { createOpenAI } from "@ai-sdk/openai";
-
-export default defineLazyEventHandler(async () => {
-  const openai = createOpenAI({
-    apiKey: useRuntimeConfig().openaiApiKey,
-  });
-
-  return defineEventHandler(async (event) => {
-    const { prompt } = await readBody(event);
-
-    const result = streamText({
-      model: openai("gpt-4o"),
-      prompt,
-    });
-
-    return result.toTextStreamResponse();
-  });
-});
-```
-
-**Note:** Use `toTextStreamResponse()` for completion, not `toUIMessageStreamResponse()`.
 
 ---
 
 ## Anti-patterns
 
 ```typescript
-// WRONG: Using useCompletion for chat
-const { complete } = useCompletion();
-complete("User: Hello\nAssistant:"); // ❌ No conversation memory
+// WRONG: Using for conversation
+complete("User: Hello\nAssistant:"); // ❌ No memory
 
-// CORRECT: Use Chat class for conversations
-import { Chat } from "@ai-sdk/vue";
+// CORRECT: Use Chat for conversations
 const chat = new Chat({ api: "/api/chat" });
 chat.sendMessage({ text: "Hello" }); // ✓
-```
-
-```typescript
-// WRONG: Using toUIMessageStreamResponse for completion
-return result.toUIMessageStreamResponse(); // ❌ Wrong format
-
-// CORRECT: Use toTextStreamResponse
-return result.toTextStreamResponse(); // ✓
 ```
