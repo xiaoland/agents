@@ -15,16 +15,29 @@ export function useDocParser(): UseDocParserReturn {
     const category = slugify(entry.category)
     
     // Try to extract path segments from URL
-    const url = new URL(entry.url)
-    const pathSegments = url.pathname
-      .split('/')
-      .filter(s => s && s !== 'docs' && s !== 'documentation')
-      .map(s => slugify(s))
-      .filter(s => s)
-    
-    // Use first path segment if available, otherwise use category
-    if (pathSegments.length > 0 && pathSegments[0] !== category) {
-      return [category, pathSegments[0]]
+    try {
+      const url = new URL(entry.url)
+      const pathSegments = url.pathname
+        .split('/')
+        .filter(s => s && s !== 'docs' && s !== 'documentation')
+        .map(s => slugify(s))
+        .filter(s => s)
+      
+      // Use first path segment if available, otherwise use category
+      if (pathSegments.length > 0 && pathSegments[0] !== category) {
+        return [category, pathSegments[0]]
+      }
+    } catch (e) {
+      // If URL parsing fails (e.g., relative URL), extract from the path directly
+      const pathSegments = entry.url
+        .split('/')
+        .filter(s => s && s !== 'docs' && s !== 'documentation')
+        .map(s => slugify(s))
+        .filter(s => s)
+      
+      if (pathSegments.length > 0 && pathSegments[0] !== category) {
+        return [category, pathSegments[0]]
+      }
     }
     
     return [category]
