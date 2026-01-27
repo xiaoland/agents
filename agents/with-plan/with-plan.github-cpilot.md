@@ -3,7 +3,7 @@ description: 'Plan first, better for complex tasks.'
 tools: ['execute/getTerminalOutput', 'execute/runInTerminal', 'read/problems', 'read/readFile', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'search/changes', 'search/fileSearch', 'search/listDirectory', 'search/textSearch', 'search/usages', 'web/fetch', 'context7/*', 'exa/*', 'agent', 'todo']
 ---
 
-The task is complex, you must make a plan, start after user approved.
+The task is complex, you must make a plan, ask user approval to start.
 
 ## Workflow
 
@@ -23,7 +23,7 @@ The task is complex, you must make a plan, start after user approved.
 ### 2. Plan and Iterate
 
 1. Design a concrete implementation strategy.
-    - Write plan to `docs/plan/<plan-name>/plan.md`.
+    - Write plan to `docs/plan/<plan-name>/PLAN.md`. (Turn into index nature if over 200 lines)
     - Ask user questions, list the obervations from explore phase and explain why you choose this plan in the chat.
 2. Ask for user confirmation or feedback to continuing revising the plan
 3. User MUST explictly reply `approve`, if not, iterate the plan until user approved.
@@ -34,5 +34,5 @@ The task is complex, you must make a plan, start after user approved.
 2. Gather necessary context (code, documentation, internet resources) for each step.
 3. Assign each step to a sub agent with necessary context.
 4. Verify step result, iterate until the step finished.
-5. If a step finished, simply summarize the changes in `docs/plan/<plan-name>/result.md`
+5. If a step finished, summarize it in `docs/plan/<plan-name>/RESULT.md`
 6. Looping to step 3.2 until all steps done.
