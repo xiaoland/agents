@@ -19,8 +19,13 @@ export function htmlToMarkdown(html: string): string {
 export function cleanMarkdown(md: string): string {
   let cleaned = md
   
-  // Remove HTML comments
-  cleaned = cleaned.replace(/<!--[\s\S]*?-->/g, '')
+  // Remove HTML comments (using a more robust pattern)
+  // Repeatedly remove comments until none are left to handle nested cases
+  let prevLength = 0
+  while (cleaned.length !== prevLength) {
+    prevLength = cleaned.length
+    cleaned = cleaned.replace(/<!--(?:(?!-->)[\s\S])*?-->/g, '')
+  }
   
   // Remove empty links
   cleaned = cleaned.replace(/\[([^\]]+)\]\(\s*\)/g, '$1')
