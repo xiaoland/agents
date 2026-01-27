@@ -2,6 +2,7 @@
   "name": "gen-skill",
   "version": "0.1.0",
   "type": "module",
+  "packageManager": "pnpm@10.28.1",
   "private": true,
   "scripts": {
     "dev": "vite",
