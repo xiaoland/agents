@@ -26,6 +26,18 @@
 
 - Prioritize A over B: Prioritize functionality over aesthetics.
 
+## 寻找
+
+- Indicate, find out
+  - Indicate the gaps between the plan.
+- Diagnose
+
+## 屎山代码
+
+- legacy code: still functional but not modernized
+- duplicated code: repeated logic or snippets that weren't consolidated
+- dead code: unused legacy remnants that could be safely removed but were left behind.
+
 ## 写文档
 
 - 功能胜于形式：Content is king; formatting is an afterthought
