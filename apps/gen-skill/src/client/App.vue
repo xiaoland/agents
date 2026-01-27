@@ -7,42 +7,51 @@
 
     <main>
       <!-- Step 1: URL Input -->
-      <UrlInput 
-        :disabled="isProcessing"
-        @discover="handleDiscover"
-      />
+      <UrlInput :disabled="isProcessing" @discover="handleDiscover" />
 
       <!-- Step 2: Discovery Result -->
-      <DiscoveryResultComponent 
+      <!-- NEW: Filters Component -->
+      <Filters
+        v-if="discoveryResult && discoveryResult.entries.length > 0"
+        :filter-state="filterState"
+        :total-entries="discoveryResult.entries.length"
+        :filtered-entries="filteredEntries"
+        :is-processing="isProcessing"
+        @filters-change="handleFiltersChange"
+      />
+
+      <DiscoveryResultComponent
         v-if="discoveryResult"
         :result="discoveryResult"
+        :filtered-entries="filteredEntries"
+        :total-entries="discoveryResult.entries.length"
       />
 
       <!-- Action Buttons after Discovery -->
-      <div v-if="discoveryResult && discoveryResult.entries.length > 0" class="actions">
-        <button 
-          @click="handleFetchAndGenerate" 
+      <div
+        v-if="discoveryResult && discoveryResult.entries.length > 0"
+        class="actions"
+      >
+        <button
+          @click="handleFetchAndGenerate"
           :disabled="isProcessing"
           class="primary-btn"
         >
-          {{ isProcessing ? 'Processing...' : 'Fetch & Generate Skill' }}
+          {{ isProcessing ? "Processing..." : "Fetch & Generate Skill" }}
         </button>
       </div>
 
       <!-- Step 3: Fetch Progress -->
-      <FetchProgressComponent 
+      <FetchProgressComponent
         v-if="fetchProgress.total > 0"
         :progress="fetchProgress"
       />
 
       <!-- Step 4: Skill Preview -->
-      <SkillPreview 
-        v-if="skillPackage"
-        :skillPackage="skillPackage"
-      />
+      <SkillPreview v-if="skillPackage" :skillPackage="skillPackage" />
 
       <!-- Step 5: Export Button -->
-      <ExportButton 
+      <ExportButton
         v-if="skillPackage"
         :disabled="zipLoading"
         :loading="zipLoading"
@@ -63,56 +72,110 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import UrlInput from './components/UrlInput.vue'
-import DiscoveryResultComponent from './components/DiscoveryResult.vue'
-import FetchProgressComponent from './components/FetchProgress.vue'
-import SkillPreview from './components/SkillPreview.vue'
-import ExportButton from './components/ExportButton.vue'
+import { ref, computed } from "vue";
+import UrlInput from "./components/UrlInput.vue";
+import Filters from "./components/Filters.vue";
+import DiscoveryResultComponent from "./components/DiscoveryResult.vue";
+import FetchProgressComponent from "./components/FetchProgress.vue";
+import SkillPreview from "./components/SkillPreview.vue";
+import ExportButton from "./components/ExportButton.vue";
 
-import { useDocSiteDiscovery } from './composables/useDocSiteDiscovery'
-import { useDocFetcher } from './composables/useDocFetcher'
-import { useDocParser } from './composables/useDocParser'
-import { useSkillGenerator } from './composables/useSkillGenerator'
-import { useZipExporter } from './composables/useZipExporter'
+import { useDocSiteDiscovery } from "./composables/useDocSiteDiscovery";
+import { useDocFetcher } from "./composables/useDocFetcher";
+import { useDocParser } from "./composables/useDocParser";
+import { useSkillGenerator } from "./composables/useSkillGenerator";
+import { useZipExporter } from "./composables/useZipExporter";
 
-import type { DiscoveryResult, FetchProgress, SkillPackage, SkillMeta } from '@/core/types'
+import type {
+  DiscoveryResult,
+  SkillPackage,
+  SkillMeta,
+  FilterState,
+} from "@/core/types";
 
 // Composables
-const { discover } = useDocSiteDiscovery()
-const { fetchAll, progress: fetchProgress } = useDocFetcher()
-const { parse } = useDocParser()
-const { generate } = useSkillGenerator()
-const { exportZip, loading: zipLoading } = useZipExporter()
+const { discover } = useDocSiteDiscovery();
+const { fetchAll, progress: fetchProgress } = useDocFetcher();
+const { parse } = useDocParser();
+const { generate } = useSkillGenerator();
+const { exportZip, loading: zipLoading } = useZipExporter();
 
 // State
-const discoveryResult = ref<DiscoveryResult | null>(null)
-const skillPackage = ref<SkillPackage | null>(null)
-const isProcessing = ref(false)
-const error = ref<string | null>(null)
+const discoveryResult = ref<DiscoveryResult | null>(null);
+const skillPackage = ref<SkillPackage | null>(null);
+const isProcessing = ref(false);
+const error = ref<string | null>(null);
+
+// NEW: Filter state
+const filterState = ref<FilterState>({
+  baseUrlOnly: false,
+});
+
+// NEW: Computed filtered entries
+const filteredEntries = computed(() => {
+  if (!discoveryResult.value) return [];
+
+  let entries = discoveryResult.value.entries;
+
+  // Apply base URL filter
+  if (filterState.value.baseUrlOnly) {
+    const result = discoveryResult.value;
+    const baseUrl = new URL(result.baseUrl);
+    entries = entries.filter((entry) => {
+      try {
+        // Try to parse as absolute URL, if it fails, resolve as relative URL
+        let entryUrl: URL;
+        try {
+          entryUrl = new URL(entry.url);
+        } catch {
+          // If entry.url is relative, resolve it against baseUrl
+          entryUrl = new URL(entry.url, result.baseUrl);
+        }
+        return entryUrl.origin === baseUrl.origin;
+      } catch {
+        return false;
+      }
+    });
+  }
+
+  // Future: Apply category filter
+  // if (filterState.value.categories?.length) {
+  //   entries = entries.filter(e => filterState.value.categories.includes(e.category))
+  // }
+
+  // Future: Apply search filter
+  // if (filterState.value.searchText) {
+  //   entries = entries.filter(e =>
+  //     e.title.toLowerCase().includes(filterState.value.searchText.toLowerCase())
+  //   )
+  // }
+
+  return entries;
+});
 
 /**
  * Handle discovery of documentation site
  */
 async function handleDiscover(url: string) {
-  isProcessing.value = true
-  error.value = null
-  discoveryResult.value = null
-  skillPackage.value = null
+  isProcessing.value = true;
+  error.value = null;
+  discoveryResult.value = null;
+  skillPackage.value = null;
 
   try {
-    const result = await discover(url)
-    discoveryResult.value = result
+    const result = await discover(url);
+    discoveryResult.value = result;
 
-    if (result.type === 'unknown') {
-      error.value = 'This site does not have llms.txt or llms-full.txt. Only sites with these files are supported.'
+    if (result.type === "unknown") {
+      error.value =
+        "This site does not have llms.txt or llms-full.txt. Only sites with these files are supported.";
     } else if (result.entries.length === 0) {
-      error.value = 'No documentation entries found in llms.txt'
+      error.value = "No documentation entries found in llms.txt";
     }
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = e instanceof Error ? e.message : String(e);
   } finally {
-    isProcessing.value = false
+    isProcessing.value = false;
   }
 }
 
@@ -120,37 +183,42 @@ async function handleDiscover(url: string) {
  * Handle fetching and generating skill
  */
 async function handleFetchAndGenerate() {
-  if (!discoveryResult.value) return
+  if (!discoveryResult.value) return;
 
-  isProcessing.value = true
-  error.value = null
+  isProcessing.value = true;
+  error.value = null;
 
   try {
     // Step 1: Fetch all documents
-    const fetchedDocs = await fetchAll(discoveryResult.value.entries)
+    // CHANGE: Use filteredEntries instead of discoveryResult.value.entries
+    const fetchedDocs = await fetchAll(filteredEntries.value);
 
     // Step 2: Parse documents
-    const parsedDocs = parse(fetchedDocs)
+    const parsedDocs = parse(fetchedDocs);
 
     if (parsedDocs.length === 0) {
-      error.value = 'No valid documents could be parsed'
-      return
+      error.value = "No valid documents could be parsed";
+      return;
     }
 
     // Step 3: Generate skill
     const meta: SkillMeta = {
-      name: discoveryResult.value.rawContent.split('\n')[0]?.replace(/^#\s*/, '') || 'Documentation',
-      description: discoveryResult.value.rawContent.split('\n')
-        .find(line => line.startsWith('>'))
-        ?.replace(/^>\s*/, '') || 'Generated skill from documentation site',
-      sourceUrl: discoveryResult.value.baseUrl
-    }
+      name:
+        discoveryResult.value.rawContent.split("\n")[0]?.replace(/^#\s*/, "") ||
+        "Documentation",
+      description:
+        discoveryResult.value.rawContent
+          .split("\n")
+          .find((line) => line.startsWith(">"))
+          ?.replace(/^>\s*/, "") || "Generated skill from documentation site",
+      sourceUrl: discoveryResult.value.baseUrl,
+    };
 
-    skillPackage.value = generate(parsedDocs, meta)
+    skillPackage.value = generate(parsedDocs, meta);
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = e instanceof Error ? e.message : String(e);
   } finally {
-    isProcessing.value = false
+    isProcessing.value = false;
   }
 }
 
@@ -158,18 +226,23 @@ async function handleFetchAndGenerate() {
  * Handle exporting ZIP
  */
 async function handleExport() {
-  if (!skillPackage.value || !discoveryResult.value) return
+  if (!skillPackage.value || !discoveryResult.value) return;
 
   try {
     const filename = discoveryResult.value.baseUrl
-      .replace(/^https?:\/\//, '')
-      .replace(/\./g, '-')
-      .replace(/\//g, '-')
+      .replace(/^https?:\/\//, "")
+      .replace(/\./g, "-")
+      .replace(/\//g, "-");
 
-    await exportZip(skillPackage.value, filename)
+    await exportZip(skillPackage.value, filename);
   } catch (e) {
-    error.value = e instanceof Error ? e.message : String(e)
+    error.value = e instanceof Error ? e.message : String(e);
   }
+}
+
+// NEW: Handle filter changes
+function handleFiltersChange(filters: FilterState) {
+  filterState.value = filters;
 }
 </script>
 
@@ -180,7 +253,9 @@ async function handleExport() {
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu,
+    Cantarell, sans-serif;
   line-height: 1.6;
   color: #333;
 }

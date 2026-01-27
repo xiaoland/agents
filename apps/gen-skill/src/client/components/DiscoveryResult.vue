@@ -4,30 +4,26 @@
     <div class="info">
       <p><strong>Type:</strong> {{ result.type }}</p>
       <p><strong>Base URL:</strong> {{ result.baseUrl }}</p>
-      <p><strong>Entries Found:</strong> {{ filteredEntries.length }} {{ showingFiltered ? `(${result.entries.length} total)` : '' }}</p>
+      <p>
+        <strong>Entries Found:</strong> {{ filteredEntries.length }} of
+        {{ totalEntries }}
+      </p>
     </div>
-    
-    <div v-if="result.entries.length > 0" class="entries">
-      <div class="entries-header">
-        <h3>Documentation Entries</h3>
-        <button 
-          @click="toggleFilter" 
-          class="filter-btn"
-          :class="{ active: showingFiltered }"
-        >
-          {{ showingFiltered ? '✓ Only Base URL' : 'Filter by Base URL' }}
-        </button>
-      </div>
+
+    <div v-if="filteredEntries.length > 0" class="entries">
+      <h3>Documentation Entries</h3>
       <div class="entry-list">
         <div v-for="(entry, idx) in filteredEntries" :key="idx" class="entry">
           <strong>{{ entry.title }}</strong>
           <span class="category">{{ entry.category }}</span>
-          <p class="description" v-if="entry.description">{{ entry.description }}</p>
+          <p class="description" v-if="entry.description">
+            {{ entry.description }}
+          </p>
           <a :href="entry.url" target="_blank" class="url">{{ entry.url }}</a>
         </div>
       </div>
     </div>
-    
+
     <div v-else class="warning">
       <p>⚠️ No entries found. This site may not have proper llms.txt format.</p>
     </div>
@@ -35,41 +31,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import type { DiscoveryResult } from '@/core/types'
+import type { DiscoveryResult, DocEntry } from "@/core/types";
 
 interface Props {
-  result: DiscoveryResult | null
+  result: DiscoveryResult | null;
+  filteredEntries: DocEntry[];
+  totalEntries: number;
 }
 
-const props = defineProps<Props>()
-
-const showingFiltered = ref(false)
-
-const filteredEntries = computed(() => {
-  if (!props.result) return []
-  
-  if (!showingFiltered.value) {
-    return props.result.entries
-  }
-  
-  // Filter entries that match the base URL
-  const result = props.result
-  return result.entries.filter(entry => {
-    try {
-      const entryUrl = new URL(entry.url)
-      const baseUrl = new URL(result.baseUrl)
-      return entryUrl.origin === baseUrl.origin
-    } catch (e) {
-      // If URL parsing fails, keep the entry
-      return true
-    }
-  })
-})
-
-function toggleFilter() {
-  showingFiltered.value = !showingFiltered.value
-}
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const props = defineProps<Props>();
 </script>
 
 <style scoped>
@@ -93,35 +64,8 @@ h2 {
   margin-top: 1rem;
 }
 
-.entries-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 0.5rem;
-}
-
 h3 {
   margin: 0;
-}
-
-.filter-btn {
-  padding: 0.4rem 0.8rem;
-  background: #f0f0f0;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 0.9rem;
-  transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
-  background: #e0e0e0;
-}
-
-.filter-btn.active {
-  background: #42b983;
-  color: white;
-  border-color: #42b983;
 }
 
 .entry-list {

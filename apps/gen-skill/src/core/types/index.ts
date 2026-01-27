@@ -93,3 +93,14 @@ export interface ParsedLlmsTxt {
   meta: LlmsTxtMeta
   entries: DocEntry[]
 }
+
+// ============ Filter State ============
+
+export interface FilterState {
+  baseUrlOnly: boolean
+  // Future filters:
+  // categories?: string[]
+  // searchText?: string
+  // maxTokens?: number
+  // urlPattern?: string
+}
