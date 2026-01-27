@@ -54,10 +54,11 @@ const filteredEntries = computed(() => {
   }
   
   // Filter entries that match the base URL
-  return props.result.entries.filter(entry => {
+  const result = props.result
+  return result.entries.filter(entry => {
     try {
       const entryUrl = new URL(entry.url)
-      const baseUrl = new URL(props.result!.baseUrl)
+      const baseUrl = new URL(result.baseUrl)
       return entryUrl.origin === baseUrl.origin
     } catch (e) {
       // If URL parsing fails, keep the entry
