@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+  margin: 20px;
+  background: #fff;
+}
+.discovery-result {
+  margin-bottom: 2rem;
+  padding: 1rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  background: #f9f9f9;
+  max-width: 900px;
+}
+h2 {
+  margin-top: 0;
+  color: #333;
+}
+.info p {
+  margin: 0.5rem 0;
+}
+.entries {
+  margin-top: 1rem;
+}
+.entries-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+h3 {
+  margin: 0;
+}
+.filter-btn {
+  padding: 0.4rem 0.8rem;
+  background: #42b983;
+  color: white;
+  border: 1px solid #42b983;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+}
+.filter-btn:hover {
+  background: #35a372;
+}
+.entry-list {
+  max-height: 300px;
+  overflow-y: auto;
+}
+.entry {
+  padding: 0.75rem;
+  margin-bottom: 0.5rem;
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 4px;
+}
+.entry strong {
+  display: block;
+  margin-bottom: 0.25rem;
+}
+.category {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  background: #42b983;
+  color: white;
+  font-size: 0.8rem;
+  border-radius: 3px;
+  margin-bottom: 0.5rem;
+}
+.description {
+  margin: 0.5rem 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+.url {
+  display: block;
+  font-size: 0.85rem;
+  color: #42b983;
+  text-decoration: none;
+}
+.filtered {
+  opacity: 0.4;
+  text-decoration: line-through;
+}
+</style>
+</head>
+<body>
+<h1>🤖 Agent Skill Generator</h1>
+<p style="color: #666;">Convert documentation sites into Agent Skills</p>
+
+<div class="discovery-result">
+  <h2>Discovery Result</h2>
+  <div class="info">
+    <p><strong>Type:</strong> llms-txt</p>
+    <p><strong>Base URL:</strong> https://example.com</p>
+    <p><strong>Entries Found:</strong> 6 (8 total)</p>
+  </div>
+  
+  <div class="entries">
+    <div class="entries-header">
+      <h3>Documentation Entries</h3>
+      <button class="filter-btn">✓ Only Base URL</button>
+    </div>
+    <div class="entry-list">
+      <div class="entry">
+        <strong>Introduction</strong>
+        <span class="category">Getting Started</span>
+        <p class="description">Getting started with our framework</p>
+        <a href="#" class="url">https://example.com/docs/intro</a>
+      </div>
+      <div class="entry">
+        <strong>Installation</strong>
+        <span class="category">Getting Started</span>
+        <p class="description">How to install the framework</p>
+        <a href="#" class="url">https://example.com/docs/install</a>
+      </div>
+      <div class="entry">
+        <strong>Core API</strong>
+        <span class="category">API Reference</span>
+        <p class="description">Core API documentation</p>
+        <a href="#" class="url">https://example.com/docs/api/core</a>
+      </div>
+      <div class="entry">
+        <strong>Utilities</strong>
+        <span class="category">API Reference</span>
+        <p class="description">Utility functions</p>
+        <a href="#" class="url">https://example.com/docs/api/utils</a>
+      </div>
+      <div class="entry filtered" style="display:none;">
+        <strong>External Library</strong>
+        <span class="category">API Reference</span>
+        <p class="description">External dependency docs</p>
+        <a href="#" class="url">https://other-site.com/docs/library</a>
+      </div>
+      <div class="entry">
+        <strong>Tutorial</strong>
+        <span class="category">Guides</span>
+        <p class="description">Step-by-step tutorial</p>
+        <a href="#" class="url">https://example.com/docs/guides/tutorial</a>
+      </div>
+      <div class="entry">
+        <strong>Best Practices</strong>
+        <span class="category">Guides</span>
+        <p class="description">Best practices guide</p>
+        <a href="#" class="url">https://example.com/docs/guides/best-practices</a>
+      </div>
+      <div class="entry filtered" style="display:none;">
+        <strong>Community Guide</strong>
+        <span class="category">Guides</span>
+        <p class="description">Community contributed guide</p>
+        <a href="#" class="url">https://community.example.org/guide</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
