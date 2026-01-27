@@ -68,7 +68,7 @@ export function useDocFetcher(): UseDocFetcherReturn {
       } else {
         // Try appending .md
         try {
-          const mdResponse = await fetchWithTimeout(`${url}.md`, 0)
+          const mdResponse = await fetchWithTimeout(`${url}.md`, 1)
           url = `${url}.md`
           contentType = 'markdown'
         } catch (e) {

@@ -8,7 +8,7 @@ export function slugify(text: string): string {
     .trim()
     .toLowerCase()
     .replace(/\s+/g, '-')           // spaces to hyphens
-    .replace(/[^\w\u4e00-\u9fa5-]/g, '') // keep alphanumeric, Chinese, and hyphens
+    .replace(/[^\w\u4e00-\u9fa5.-]/g, '') // keep alphanumeric, Chinese, dots, and hyphens
     .replace(/--+/g, '-')           // collapse multiple hyphens
     .replace(/^-|-$/g, '')          // remove leading/trailing hyphens
 }

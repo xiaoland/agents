@@ -200,7 +200,7 @@ function mergeSmallChunks(chunks: Chunk[], minTokens: number): Chunk[] {
       
       // Merge if combined size is reasonable
       const combinedTokens = current.estimatedTokens + next.estimatedTokens
-      if (combinedTokens <= DEFAULT_CONFIG.maxTokens) {
+      if (combinedTokens <= cfg.maxTokens) {
         merged.push({
           id: current.id,
           title: current.title,

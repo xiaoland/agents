@@ -50,8 +50,7 @@ export function useSkillGenerator(): UseSkillGeneratorReturn {
     return `---
 name: ${slugifiedName}
 description: ${meta.description}
-${meta.version ? `version: ${meta.version}` : ''}
----
+${meta.version ? `version: ${meta.version}\n` : ''}---
 
 # ${meta.name}
 
