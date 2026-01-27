@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "skill-generator",
+  "compatibility_date": "2025-01-26",
+  
+  // 静态资源配置（当前 MVP：纯静态 SPA）
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+  
+  // 预留：未来添加 Worker 服务端
+  // "main": "src/worker/index.ts",
+  // "assets": {
+  //   "directory": "./dist",
+  //   "binding": "ASSETS",
+  //   "not_found_handling": "single-page-application"
+  // }
+}
