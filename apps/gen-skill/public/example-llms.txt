@@ -8,7 +8,9 @@
 ## API Reference
 - [Core API](https://example.com/docs/api/core): Core API documentation
 - [Utilities](https://example.com/docs/api/utils): Utility functions
+- [External Library](https://other-site.com/docs/library): External dependency docs
 
 ## Guides
 - [Tutorial](https://example.com/docs/guides/tutorial): Step-by-step tutorial
 - [Best Practices](https://example.com/docs/guides/best-practices): Best practices guide
+- [Community Guide](https://community.example.org/guide): Community contributed guide
