@@ -13,7 +13,7 @@
       />
 
       <!-- Step 2: Discovery Result -->
-      <DiscoveryResult 
+      <DiscoveryResultComponent 
         v-if="discoveryResult"
         :result="discoveryResult"
       />
@@ -30,7 +30,7 @@
       </div>
 
       <!-- Step 3: Fetch Progress -->
-      <FetchProgress 
+      <FetchProgressComponent 
         v-if="fetchProgress.total > 0"
         :progress="fetchProgress"
       />
@@ -65,8 +65,8 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import UrlInput from './components/UrlInput.vue'
-import DiscoveryResult from './components/DiscoveryResult.vue'
-import FetchProgress from './components/FetchProgress.vue'
+import DiscoveryResultComponent from './components/DiscoveryResult.vue'
+import FetchProgressComponent from './components/FetchProgress.vue'
 import SkillPreview from './components/SkillPreview.vue'
 import ExportButton from './components/ExportButton.vue'
 
