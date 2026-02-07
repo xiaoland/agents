@@ -1,0 +1,1 @@
+- Do not keep backward compatibility, delete and refactor ruthlessly, creatively and revolutionary.

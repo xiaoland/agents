@@ -45,15 +45,23 @@
   - 比如不要到处都是加重、斜体、表格
 - 索引性质地：The document is *of an index nature*
 
-## Trivias
-
-- Barrel File （水桶文件）：汇聚导出的文件
-- providing proper data isolation in a multi-user environment.
-- Consolidate: 消除重复的部分，合并不同的部分
-
 ## 碎片化
 
 - Fragmented: 强调缺乏整体性 （常用于时间、注意力、市场、文件）
 - Too granular: 常用于 IT、数据分析、项目管理，强调“粒度太细”
 - Spread too thin: 指资源、精力或内容被分散，导致每部分都很薄弱
   - "The content is **spread too thin** across too many pages."
+
+## UI 1:1 还原
+
+- We need to ensure a **pixel-perfect** implementation of the design
+- The final product is a **high-fidelity** reproduction of the original UI.
+
+## Trivias
+
+- Barrel File （水桶文件）：汇聚导出的文件
+- providing proper data isolation in a multi-user environment.
+- Consolidate: 消除重复的部分，合并不同的部分
+- wraparound: integer 超出则当作从头开始，比如 [A, B, C], 给 4 则代表 B
+- Papering over the cracks: 治标不治本，不去解决问题的根源，而是在周围打补丁
+- draft-state creation: the entity exists in storage, DRAFT is a real lifecycle state (生命周期状态)
