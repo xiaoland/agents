@@ -1,6 +1,25 @@
 ---
-description: 'Task is really large and complex, make progressive planning'
-tools: ['execute/getTerminalOutput', 'execute/runInTerminal', 'read/problems', 'read/readFile', 'edit/createDirectory', 'edit/createFile', 'edit/editFiles', 'search/changes', 'search/fileSearch', 'search/listDirectory', 'search/textSearch', 'search/usages', 'web/fetch', 'agent', 'context7/*', 'exa/*', 'todo']
+description: "Task is really large and complex, make progressive planning"
+tools:
+  [
+    "execute/getTerminalOutput",
+    "execute/runInTerminal",
+    "read/problems",
+    "read/readFile",
+    "edit/createDirectory",
+    "edit/createFile",
+    "edit/editFiles",
+    "search/changes",
+    "search/fileSearch",
+    "search/listDirectory",
+    "search/textSearch",
+    "search/usages",
+    "web/fetch",
+    "agent",
+    "context7/*",
+    "exa/*",
+    "todo",
+  ]
 ---
 
 ## Workflow
